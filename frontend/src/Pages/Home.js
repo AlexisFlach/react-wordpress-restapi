@@ -11,7 +11,6 @@ const Home = () => {
     const fetchData = async () => {
       const res = await axios.get('http://localhost:8000/wp-json/wp/v2/pages?slug=hem');
       const { acf } = res.data[0];
-      console.log(acf);
       setTitle(acf.rubrik);
       setDescription(acf.beskrivning)
       setImage(acf.bild.url)
