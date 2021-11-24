@@ -17,7 +17,7 @@ GET http://localhost:8000/wp-json/wp/v2/projects
 Gå till Wordpress Admin och gå till menyn. Lägg till anpassade länkar och
 
 ```
-URL: http://localhost:3000/projects
+URL: /projects
 Länktext: Projects
 ```
 
@@ -69,7 +69,7 @@ const ProjectItem = ({project}) => {
         <div>
             <h2>{project.title.rendered}</h2>
             <div dangerouslySetInnerHTML={{__html: project.excerpt.rendered}}/>
-            <Link to={`http://localhost:8000/projects/${project.id}`}>Go to page</Link>
+            <Link to={`/${project.id}`}>Go to page</Link>
         </div>
     )
 }

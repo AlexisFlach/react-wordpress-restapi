@@ -7,7 +7,7 @@ const ProjectItem = ({project}) => {
         <div>
             <h2>{project.title.rendered}</h2>
             <div dangerouslySetInnerHTML={{__html: project.excerpt.rendered}}/>
-            <Link to={`http://localhost:8000/projects/${project.id}`}>Go to page</Link>
+            <Link to={`/${project.id}`}>Go to page</Link>
         </div>
     )
 }
