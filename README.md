@@ -1,92 +1,127 @@
-### React
+### Menu
 
-#### 1. Setup
-
-Skapa nu ett nytt React-projekt
+I **functions.php** lägg till
 
 ```
-npx create-react-app frontend
+function get_my_menu()
+{
+    return wp_get_nav_menu_items('primary');
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('wp/v2', 'menu', array(
+        'methods' => 'GET',
+        'callback' => 'get_my_menu',
+    ));
+});
 ```
 
-```
-npm install react-router-dom
-```
-
-**app.js**
+"primary" är baserat på:
 
 ```
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './Pages/Home';
-
-    const App = () => (
-      <Router>
-        <Routes>
-          <Route exact path="/" element={<Home/>}/> 
-        </Routes>
-      </Router>
-    );
-    export default App;
-
+register_nav_menus(
+			array(
+				'primary' => esc_html__( 'Primary menu', 'twentytwentyone' ),
+				'footer'  => __( 'Secondary menu', 'twentytwentyone' ),
+			)
+		);
 ```
 
-**Pages/Home.jsx**
+Gå till Wordpress Admin och lägg till ett par sidor.
+
+Skapa sedan en ny meny och namnge den "primary".
+
+**postman**
 
 ```
-import React from 'react'
+GET http://localhost:8000/wp-json/wp/v2/menu
+```
 
-const Home = () => {
+I React skapa en fil som heter **Navbar.js**
+
+**Componenent/Navbar.js**
+
+```
+import React, {useEffect, useState} from 'react'
+import {Link} from 'react-router-dom';
+import axios from 'axios'
+
+const Navbar = () => {
+    const [menuItem, setMenuItems] = useState([])
+
+    useEffect(() => {
+        const fetchData = async() => {
+          const response = await axios.get('http://localhost:8000/wp-json/wp/v2/menu')
+          const items = await response.data;
+          setMenuItems(items)
+        }
+        fetchData();
+      }, []);
+
+      const removeSpaceFromString = str => {
+        let cleanStr = str.replace(/\s/g, '');
+        return cleanStr;
+      }
+
     return (
-        <div>
-          <h1>Hello World</h1>  
-        </div>
+        <nav>
+           {menuItem.map((item, i) => (
+           <li key={i}>
+             {item.title === "Hem" ?
+            <Link to="/">{item.title}</Link>
+            : <Link to={removeSpaceFromString(item.title)}>{item.title}</Link>
+             }
+           </li>
+           ))}
+        </nav>
     )
 }
 
-export default Home
+export default Navbar
 ```
 
-#### 2. Axios och våra första requests
+**App.js**
 
 ```
-npm install axios
+<Route exact path="/ommig" element={<About/>}/> 
 ```
 
-**Pages/Home.js**
+**About.js**
 
 ```
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 
-const Home = () => {
+const About = () => {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("")
+  const [content, setContent] = useState("")
+  const [imageId, setImageID] = useState(null);
   const [image, setImage] = useState("");
-  const [link, setLink] = useState("");
 
   useEffect(() => {
+
     const fetchData = async () => {
-      const res = await axios.get('http://localhost:8000/wp-json/wp/v2/pages?slug=hem');
-      const { acf } = res.data[0];
-      console.log(acf);
-      setTitle(acf.rubrik);
-      setDescription(acf.beskrivning)
-      setImage(acf.bild.url)
-      setLink(acf.lank);
+        const res = await axios.get(`http://localhost:8000/wp-json/wp/v2/pages?slug=om-mig}`);
+        const data = await res.data[0];
+        setTitle(data.title.rendered)
+        setContent(data.content.rendered)
+        setImageID(data.featured_media)
+        const img = await axios.get(`http://localhost:8000/wp-json/wp/v2/media/${imageId}`)
+        setImage(img.data.guid.rendered)
     }
     fetchData()
-  }, [])
+  }, [imageId, image])
 
   return (
     <div>
-      <img style={{ height: "400px" }} src={image} />
+        <img style={{ height: "400px" }} src={image} />
       <h1>{title}</h1>
-      <p>{description}</p>
-      <a href={link} className="button">Go to page</a>
+      <div dangerouslySetInnerHTML={{__html:content}}/>
     </div>
   )
 }
 
-export default Home;
+export default About
 ```
 

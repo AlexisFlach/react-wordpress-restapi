@@ -637,3 +637,16 @@ function twentytwentyone_add_ie_class() {
 	<?php
 }
 add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
+
+function get_my_menu()
+{
+    return wp_get_nav_menu_items('primary');
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('wp/v2', 'menu', array(
+        'methods' => 'GET',
+        'callback' => 'get_my_menu',
+    ));
+});
